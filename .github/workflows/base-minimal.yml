@@ -40,8 +40,7 @@ jobs:
         run: |
           # fail on error and print commands
           set -ex
-          wget --output-document=${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }} \
-${{ env.PKG_HOST_URL }}/${{ env.PKG_USERNAME }}/${{ env.PKG_NAME }}/${{ env.PKG_HOST_URL_STUB }}/${{ env.PKG_VERSION }}/${{ env.PKG_NAME }}-${{ env.PKG_PLATFORM }}${{ env.PKG_EXT }}\
+          wget --output-document=${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }} ${{ env.PKG_HOST_URL }}/${{ env.PKG_USERNAME }}/${{ env.PKG_NAME }}/${{ env.PKG_HOST_URL_STUB }}/${{ env.PKG_VERSION }}/${{ env.PKG_NAME }}-${{ env.PKG_PLATFORM }}${{ env.PKG_EXT }}\
           && echo "${{ env.PKG_SHA256 }}  ${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }}" | sha256sum --check\
           && chmod u+x ${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }}
   
