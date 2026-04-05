@@ -15,6 +15,12 @@ env:
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      script_name:
+        description: "Name of script"
+        required: false
+        default: "hello.py"
+        type: string
 
 # Sets permissions of the GITHUB_TOKEN
 permissions:
@@ -48,9 +54,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           sparse-checkout: |
-            scripts/
+            .github/workflows/scripts/
           sparse-checkout-cone-mode: false
 
       - name: Run Scripts
         run: |
-          xonsh scripts/hello.py
+          xonsh .github/workflows/scripts/${{ inputs.script_name }}
