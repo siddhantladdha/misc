@@ -19,7 +19,7 @@ on:
       script_name:
         description: "Name of script"
         required: false
-        default: "hello.py"
+        default: "hello.xsh"
         type: string
 
 # Sets permissions of the GITHUB_TOKEN
