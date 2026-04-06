@@ -1,3 +1,3 @@
 #!/usr/bin/env xonsh
-echo "Hello world"
+echo @("Hello world")
 print("Hello world")
