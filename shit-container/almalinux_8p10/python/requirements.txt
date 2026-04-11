@@ -1,0 +1,17 @@
+cyclopts
+numpy
+pandas
+plotly
+polars
+pydantic
+quantiphy
+rich
+scipy
+sympy
+xarray
+hypothesis
+plumbum
+pytest
+toolz
+boltons
+ptpython
