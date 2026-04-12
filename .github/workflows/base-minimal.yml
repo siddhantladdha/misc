@@ -21,6 +21,11 @@ on:
         required: false
         default: "hello.xsh"
         type: string
+      scripts_dir:
+        description: "Absolute path of script parent dir"
+        required: false
+        default: ".github/workflows/scripts"
+        type: string
 
 # Sets permissions of the GITHUB_TOKEN
 permissions:
@@ -54,9 +59,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           sparse-checkout: |
-            .github/workflows/scripts/
+            ${{ inputs.scripts_dir }}
           sparse-checkout-cone-mode: false
 
       - name: Run Scripts
         run: |
-          xonsh .github/workflows/scripts/${{ inputs.script_name }}
+          xonsh ${{ inputs.scripts_dir }}/${{ inputs.script_name }}
