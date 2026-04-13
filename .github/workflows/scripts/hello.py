@@ -6,5 +6,5 @@
 # ///
 
 from plumbum.cmd import echo
-echo("Hello world from plumbum echo")
+print(echo["Hello world from plumbum echo"])
 print("Hello world from python print")
