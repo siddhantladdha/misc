@@ -40,8 +40,8 @@ jobs:
           sparse-checkout: |
             ${{ inputs.scripts_dir }}
           sparse-checkout-cone-mode: false
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
         with:
           enable-cache: true
       - name: Run Scripts
