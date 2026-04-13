@@ -1,16 +1,4 @@
-name: Python/xonsh script runner.
-
-env:
-    # github username of package repository
-    PKG_USERNAME: "xonsh"
-    PKG_NAME: "xonsh"
-    PKG_VERSION: "0.22.8"
-    PKG_SHA256: 13673b916ea534574f5666b6712a57cb8373b010857da49bd12312c760537226
-    PKG_HOST_URL: "https://github.com"
-    PKG_HOST_URL_STUB: "releases/download"
-    PKG_PLATFORM: "x86_64"
-    PKG_EXT: ".AppImage"
-    PKG_TARGET_DIR: "/usr/local/bin"
+name: Python script runner.
 
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -19,7 +7,7 @@ on:
       script_name:
         description: "Name of script"
         required: false
-        default: "hello.xsh"
+        default: "hello.py"
         type: string
       scripts_dir:
         description: "Absolute path of script parent dir"
@@ -43,25 +31,19 @@ defaults:
     shell: bash
 
 jobs:
-  # Build job
-  build:
+  job_1:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Xonsh
-        run: |
-          # fail on error and print commands
-          set -ex
-          wget --output-document=${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }} ${{ env.PKG_HOST_URL }}/${{ env.PKG_USERNAME }}/${{ env.PKG_NAME }}/${{ env.PKG_HOST_URL_STUB }}/${{ env.PKG_VERSION }}/${{ env.PKG_NAME }}-${{ env.PKG_PLATFORM }}${{ env.PKG_EXT }}\
-          && echo "${{ env.PKG_SHA256 }}  ${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }}" | sha256sum --check\
-          && chmod u+x ${{ env.PKG_TARGET_DIR }}/${{ env.PKG_NAME }}
-  
       - name: Checkout scripts only
         uses: actions/checkout@v6
         with:
           sparse-checkout: |
             ${{ inputs.scripts_dir }}
           sparse-checkout-cone-mode: false
-
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
       - name: Run Scripts
         run: |
-          xonsh ${{ inputs.scripts_dir }}/${{ inputs.script_name }}
+          uv run ${{ inputs.scripts_dir }}/${{ inputs.script_name }}
