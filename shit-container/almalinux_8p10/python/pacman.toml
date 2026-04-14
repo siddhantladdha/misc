@@ -1,0 +1,11 @@
+["niess/python-appimage"]
+version = "python3.14"
+sha256 = "05b6cf8418118c20df6e16cb7fac38e137daf73be9d16aec13328b260d79c407"
+pattern = "*cp314-manylinux2014_x86_64.AppImage"
+output = "python"
+
+["AppImage/appimagetool"]
+version = "continuous"
+sha256 = "a6d71e2b6cd66f8e8d16c37ad164658985e0cf5fcaa950c90a482890cb9d13e0"
+pattern = "*x86_64.AppImage"
+output = "appimagetool"
