@@ -6,14 +6,18 @@
 # requires-python = ">=3.14"
 # ///
 
-from plumbum.cmd import gh, chmod, rm
+from plumbum.cmd import gh, chmod, rm, cp, mkdir
 from plumbum import FG
+from plumbum import local
 import tomllib
 from rich import print
 import hashlib
 
 with open("pacman.toml", "rb") as f:
     pkgs = tomllib.load(f)
+mkdir("python_build")
+cp("./requirements.txt", "python_build")
+local.cwd.chdir("python_build")
 # Use gh since it is available in github actions runner.
 gh_download = []
 for pkg_name, pkg_info in pkgs.items():
@@ -45,5 +49,3 @@ for pkg_name, pkg_info in pkgs.items():
                   f"{pkg_info["output"]}. "
                   f"Deleting file.[/bold red]")
             rm[pkg_info["output"]]()
-
-# digest.hexdigest()
