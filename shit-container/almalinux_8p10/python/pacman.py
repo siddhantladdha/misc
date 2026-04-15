@@ -18,7 +18,7 @@ mkdir("python_build")
 copy([
 "./pacman.toml",
 "./requirements.txt"],
-"python_build)
+"python_build")
 local.cwd.chdir("python_build")
 
 with open("pacman.toml", "rb") as f:
