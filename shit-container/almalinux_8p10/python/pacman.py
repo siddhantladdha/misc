@@ -16,7 +16,7 @@ import hashlib
 
 mkdir("python_build")
 copy([
-"./pacman.toml",
+"pacman.toml",
 "./requirements.txt"],
 "python_build")
 local.cwd.chdir("python_build")
