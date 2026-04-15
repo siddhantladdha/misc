@@ -9,15 +9,21 @@
 from plumbum.cmd import gh, chmod, rm, cp, mkdir
 from plumbum import FG
 from plumbum import local
+from plumbum.path.utils import copy
 import tomllib
 from rich import print
 import hashlib
 
+mkdir("python_build")
+copy([
+"./pacman.toml",
+"./requirements.txt"],
+"python_build)
+local.cwd.chdir("python_build")
+
 with open("pacman.toml", "rb") as f:
     pkgs = tomllib.load(f)
-mkdir("python_build")
-cp("./requirements.txt", "python_build")
-local.cwd.chdir("python_build")
+
 # Use gh since it is available in github actions runner.
 gh_download = []
 for pkg_name, pkg_info in pkgs.items():
