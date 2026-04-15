@@ -47,4 +47,4 @@ jobs:
           cache-python: true
       - name: Run Scripts
         run: |
-          uv run ${{ inputs.scripts_dir }}/${{ inputs.script_name }}
+          cd ${{ inputs.scripts_dir }} && uv run ${{ inputs.script_name }}
