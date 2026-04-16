@@ -13,14 +13,16 @@ from plumbum.path.utils import copy
 import tomllib
 from rich import print
 import hashlib
-
-mkdir("python_build")
+# todo: use context manager for clean directory change.
+print(f"CWD:{local.cwd}")
+build_dir = "python_build"
+mkdir(build_dir)
 copy([
 "pacman.toml",
-"./requirements.txt"],
-"python_build")
-local.cwd.chdir("python_build")
-
+"requirements.txt"],
+build_dir)
+local.cwd.chdir(build_dir)
+print(f"CWD:{local.cwd}")
 with open("pacman.toml", "rb") as f:
     pkgs = tomllib.load(f)
 
@@ -55,3 +57,6 @@ for pkg_name, pkg_info in pkgs.items():
                   f"{pkg_info["output"]}. "
                   f"Deleting file.[/bold red]")
             rm[pkg_info["output"]]()
+
+local.cwd.chdir("..")
+print(f"CWD:{local.cwd}")
