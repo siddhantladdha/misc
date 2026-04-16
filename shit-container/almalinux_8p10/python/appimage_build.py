@@ -11,7 +11,8 @@ from plumbum import local
 from plumbum.path.utilities import copy, move
 from rich import print
 
-local.cwd.chdir("python_build")
+build_dir = "python_build"
+local.cwd.chdir(build_dir)
 
 print('Extracting appimages.')
 
@@ -21,7 +22,7 @@ for app in appy:
     app_cmd("--appimage-extract")
     move("squashfs-root", app + ".AppDir")
 
-copy("./requirements.txt", "python.AppDir")
+copy("requirements.txt", "python.AppDir")
 local.cwd.chdir("python.AppDir")
 print('Starting pip install from requirements.txt')
 #./usr/bin/pip install -r ./requirements.txt
