@@ -48,6 +48,7 @@ jobs:
         with:
           enable-cache: true
           cache-python: true
+# super important to set the current script execution path here itself instead of relying on cwd() within the script. 
       - name: Run Scripts
         run: |
           cd ${{ inputs.scripts_dir }} && uv run ${{ inputs.script_name }}
