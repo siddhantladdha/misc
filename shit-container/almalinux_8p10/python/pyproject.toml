@@ -1,0 +1,10 @@
+[project]
+name = "python-appimage-builder"
+version = "0.1.0"
+description = "Build python appimages with python libraries in Almalinux."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "plumbum>=1.10.0",
+    "rich>=15.0.0",
+]
