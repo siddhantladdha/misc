@@ -1,14 +1,19 @@
 import tomllib
 from pacman import gh_cmd_creator, cmd_executor, checksum_verifier
 from plumbum import local
-from plumbum.path.utils import copy
+from plumbum.path.utils import copy, delete
 from plumbum.machines import LocalCommand
+from rich.traceback import install
+install(show_locals=True)
+
 def main():
     print(f"CWD:{local.cwd}")
     build_dir = "build"
+    delete(build_dir)
     local.cwd.mkdir(build_dir)
     copy([
     "pacman.toml",
+    "appimage_build.py",
     "requirements.txt"],
     build_dir)
     with local.cwd(build_dir):
