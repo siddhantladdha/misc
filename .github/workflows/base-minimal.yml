@@ -1,0 +1,54 @@
+name: Python script runner.
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      script_name:
+        description: "Name of script"
+        required: false
+        default: "hello.py"
+        type: string
+      scripts_dir:
+        description: "Absolute path of script parent dir"
+        required: false
+        default: ".github/workflows/scripts"
+        type: string
+        
+env:
+  GH_TOKEN: ${{ github.token }}
+ 
+# Sets permissions of the GITHUB_TOKEN
+permissions:
+  contents: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "python-runner"
+  cancel-in-progress: false
+
+# Default to bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  job_1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts only
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            ${{ inputs.scripts_dir }}
+          sparse-checkout-cone-mode: false
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          enable-cache: true
+          cache-python: true
+# super important to set the current script execution path here itself instead of relying on cwd() within the script. 
+      - name: Run Scripts
+        run: |
+          cd ${{ inputs.scripts_dir }} && uv run ${{ inputs.script_name }}

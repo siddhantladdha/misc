@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline HTML5 Editor</title>
+  <style>
+    /* Reset and basic styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header styles */
+    header {
+      background-color: #3b82f6;
+      color: white;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    /* Button styles */
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    /* Toolbar styles */
+    .toolbar {
+      background-color: #e5e7eb;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #d1d5db;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .unsaved {
+      color: #ef4444;
+    }
+    
+    .font-size-control {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .font-button {
+      padding: 0.25rem 0.5rem;
+      background-color: #d1d5db;
+    }
+    
+    .font-button:hover {
+      background-color: #9ca3af;
+    }
+    
+    /* Main editor area */
+    .editor-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .source-container {
+      height: 100%;
+      padding: 0.5rem;
+      transition: width 0.3s;
+    }
+    
+    .preview-container {
+      height: 100%;
+      padding: 0.5rem;
+      border-left: 1px solid #d1d5db;
+      transition: width 0.3s;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 100%;
+      padding: 0.5rem;
+      font-family: monospace;
+      border: 1px solid #d1d5db;
+      border-radius: 0.25rem;
+      resize: none;
+      outline: none;
+    }
+    
+    textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+    
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-bottom: none;
+      border-top-left-radius: 0.25rem;
+      border-top-right-radius: 0.25rem;
+    }
+    
+    .preview-frame {
+      width: 100%;
+      height: calc(100% - 30px);
+      background-color: white;
+      border: 1px solid #d1d5db;
+      border-bottom-left-radius: 0.25rem;
+      border-bottom-right-radius: 0.25rem;
+    }
+    
+    .small-button {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    
+    /* Status bar */
+    .status-bar {
+      background-color: #e5e7eb;
+      padding: 0.5rem 1rem;
+      border-top: 1px solid #d1d5db;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    
+    .status-content {
+      display: flex;
+      justify-content: space-between;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    /* File input styling */
+    .file-input {
+      display: none;
+    }
+    
+    /* Utility */
+    .hidden {
+      display: none;
+    }
+
+    /* Find and Replace Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      min-width: 400px;
+      max-width: 500px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover {
+      background-color: #f3f4f6;
+      border-radius: 0.25rem;
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .input-group label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .input-group input {
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .modal-footer button {
+      flex: 1;
+    }
+
+    .replace-stats {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <h1>Offline HTML5 Editor</h1>
+      <div class="button-group">
+        <button id="newBtn">New</button>
+        <label for="openFile" class="button" id="openBtn">
+          Open
+          <input type="file" id="openFile" class="file-input" accept=".html,.htm">
+        </label>
+        <button id="saveBtn">Save</button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="file-info">
+      <span id="fileName">untitled.html</span>
+      <span id="saveStatus" class="unsaved hidden">(unsaved)</span>
+    </div>
+    
+    <button id="cleanBtn">Clean HTML</button>
+    <button id="formatBtn">Format HTML</button>
+    <button id="convertEntitiesBtn">Convert Entities</button>
+    <button id="formatBreaksBtn">Format Line Breaks</button>
+    <button id="capitalizeAcronymsBtn">CAPITALIZE Acronyms</button>
+    <button id="undoCapsBtn" title="Undo last acronym capitalization">Undo Caps</button>
+    <button id="wrapQuotesBtn">❝ Wrap Quotes ❞</button>
+    <button id="copyTextBtn">Copy All Text</button>
+    <button id="findReplaceBtn">Find & Replace</button>
+
+<div class="button-group" style="border-left: 2px solid #9ca3af; padding-left: 1rem;">
+    <button id="sentenceCaseBtn" title="Convert selection to Sentence case">Sentence case</button>
+    <button id="lowerCaseBtn" title="Convert selection to lowercase">lowercase</button>
+    <button id="upperCaseBtn" title="Convert selection to UPPERCASE">UPPERCASE</button>
+    <button id="titleCaseBtn" title="Convert selection to Title Case">Title Case</button>
+</div>
+<div class="font-size-control">
+      <button class="font-button" id="fontDecrease">-</button>
+      <span>Font</span>
+      <button class="font-button" id="fontIncrease">+</button>
+    </div>
+    
+    <button id="togglePreviewBtn">Hide Preview</button>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
+  <input type="url" id="shareUrl" placeholder="Paste article URL here" style="padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">
+  <button id="shareBtn" title="Share the URL on Facebook">Share on FB</button>
+  <button id="archiveBtn" title="Open a clean, archived version of the URL">Open Archive</button>
+  <button id="summaryBtn" title="Open summary link">Summary</button>
+</div>
+  </div>
+  
+  <!-- Main editor -->
+  <div class="editor-container">
+    <div class="source-container" id="sourceContainer" style="width: 50%;">
+      <textarea id="htmlSource" spellcheck="false"></textarea>
+    </div>
+    
+    <div class="preview-container" id="previewContainer" style="width: 50%;">
+      <div class="preview-header">
+        <span>Preview (Always Editable)</span>
+      </div>
+      <iframe id="previewFrame" class="preview-frame" sandbox="allow-same-origin"></iframe>
+    </div>
+  </div>
+  
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-content">
+      <div id="charCount">Characters: 0</div>
+      <div id="wordCount">Words: 0</div>
+      <div id="lineCount">Lines: 0</div>
+      <div>Keyboard shortcuts: Ctrl+S (Save), Ctrl+N (New), Ctrl+F (Find & Replace)</div>
+    </div>
+  </div>
+
+  <!-- Find and Replace Modal -->
+  <div id="findReplaceModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Find and Replace</h2>
+        <button class="close-btn" id="closeFindReplace">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="findInput">Find:</label>
+          <input type="text" id="findInput" placeholder="Enter text to find">
+        </div>
+        <div class="input-group">
+          <label for="replaceInput">Replace with:</label>
+          <input type="text" id="replaceInput" placeholder="Enter replacement text">
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="caseSensitive">
+          <label for="caseSensitive">Case sensitive</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="useRegex">
+          <label for="useRegex">Use regular expression</label>
+        </div>
+        <div class="replace-stats" id="replaceStats"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="findNextBtn">Find Next</button>
+        <button id="replaceBtn">Replace</button>
+        <button id="replaceAllBtn">Replace All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript - ALL JS CODE MUST BE WITHIN THESE SCRIPT TAGS -->
+  <script>
+    // DOM Elements
+    const htmlSource = document.getElementById('htmlSource');
+    const previewFrame = document.getElementById('previewFrame');
+    const sourceContainer = document.getElementById('sourceContainer');
+    const previewContainer = document.getElementById('previewContainer');
+    const togglePreviewBtn = document.getElementById('togglePreviewBtn');
+    const newBtn = document.getElementById('newBtn');
+    const openFile = document.getElementById('openFile');
+    const saveBtn = document.getElementById('saveBtn');
+    const summaryBtn = document.getElementById('summaryBtn');
+    const cleanBtn = document.getElementById('cleanBtn');
+    const formatBtn = document.getElementById('formatBtn');
+    const convertEntitiesBtn = document.getElementById('convertEntitiesBtn');
+    const formatBreaksBtn = document.getElementById('formatBreaksBtn');
+    const wrapQuotesBtn = document.getElementById('wrapQuotesBtn');
+    const copyTextBtn = document.getElementById('copyTextBtn');
+    const capitalizeAcronymsBtn = document.getElementById('capitalizeAcronymsBtn');
+    const fontIncrease = document.getElementById('fontIncrease');
+    const fontDecrease = document.getElementById('fontDecrease');
+    const fileName = document.getElementById('fileName');
+    const saveStatus = document.getElementById('saveStatus');
+    const charCount = document.getElementById('charCount');
+    const wordCount = document.getElementById('wordCount');
+    const lineCount = document.getElementById('lineCount');
+    const shareUrl = document.getElementById('shareUrl');
+    const shareBtn = document.getElementById('shareBtn');
+    const archiveBtn = document.getElementById('archiveBtn');
+    const sentenceCaseBtn = document.getElementById('sentenceCaseBtn');
+    const lowerCaseBtn = document.getElementById('lowerCaseBtn');
+    const upperCaseBtn = document.getElementById('upperCaseBtn');
+    const titleCaseBtn = document.getElementById('titleCaseBtn');
+    const undoCapsBtn = document.getElementById('undoCapsBtn');
+    const findReplaceBtn = document.getElementById('findReplaceBtn');
+    const findReplaceModal = document.getElementById('findReplaceModal');
+    const closeFindReplace = document.getElementById('closeFindReplace');
+    const findInput = document.getElementById('findInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const caseSensitive = document.getElementById('caseSensitive');
+    const useRegex = document.getElementById('useRegex');
+    const findNextBtn = document.getElementById('findNextBtn');
+    const replaceBtn = document.getElementById('replaceBtn');
+    const replaceAllBtn = document.getElementById('replaceAllBtn');
+    const replaceStats = document.getElementById('replaceStats');
+
+    // Inline elements that should preserve spacing when normalized
+    const inlineElements = new Set([
+      'a', 'abbr', 'acronym', 'b', 'bdo', 'cite', 'code', 'dfn', 'em', 'i', 'kbd',
+      'mark', 'q', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup', 'time',
+      'u', 'var', 'button', 'label', 'input', 'textarea', 'select', 'img', 'svg',
+      'path', 'use'
+    ]);
+    const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+    const noiseLinePatterns = [
+      /^\s*sign up here\.?\s*$/i,
+      /^\s*sign up (?:for|to)\s+(?:our\s+)?(?:free\s+)?(?:daily\s+)?[a-z\s]*newsletter[s]?(?:\s+alerts?)?\.?\s*$/i,
+      /^\s*subscribe (?:here|now)\.?$/i
+    ];
+    const shortCtaLeadPattern = /^(sign up|subscribe|register|sign in)\b/i;
+    const shortCtaContextPattern = /(newsletter|updates|alerts|here|now)/i;
+    const dividerLinePattern = /^\s*[_\-–=•*]{3,}\s*$/;
+    const externalLinkIconsRegex = /[\u2197\u2196\u2198\u2199\u{1F517}]/gu;
+    const reutersTickerRegex = /\s*\(\s*[A-Za-z0-9][A-Za-z0-9._-]{1,12}\.[A-Za-z]{1,5}[A-Za-z0-9._-]*\s*\)(?=[\s,.;:!?)]|$)/g;
+
+    
+    // State variables
+    let currentFileName = 'untitled.html';
+    let isSaved = true;
+    let fontSize = 14;
+    let showPreview = true;
+    let isUpdatingSource = false; // Flag to prevent circular updates
+    let lastCapitalizedContent = null;
+    let currentSearchIndex = -1;
+    let searchMatches = [];
+    
+    // Initialize editor
+    function initEditor() {
+   // Set initial content
+htmlSource.value = '';
+      updatePreview();
+      updateStatusBar();
+      htmlSource.style.fontSize = `${fontSize}px`;
+      
+      // Add event listeners
+      htmlSource.addEventListener('input', () => {
+        lastCapitalizedContent = null;
+        updatePreview();
+        updateStatusBar();
+        setUnsaved();
+      });
+      
+      togglePreviewBtn.addEventListener('click', togglePreview);
+      newBtn.addEventListener('click', newDocument);
+      openFile.addEventListener('change', loadHTML);
+      saveBtn.addEventListener('click', saveHTML);
+      summaryBtn.addEventListener('click', openSummary);
+      cleanBtn.addEventListener('click', cleanHTML);
+      formatBtn.addEventListener('click', formatHTML);
+      convertEntitiesBtn.addEventListener('click', convertEntities);
+      formatBreaksBtn.addEventListener('click', formatTextBreaks);
+      wrapQuotesBtn.addEventListener('click', wrapSelectedTextWithQuotes);
+      copyTextBtn.addEventListener('click', copyAllText);
+      capitalizeAcronymsBtn.addEventListener('click', capitalizeAcronyms);
+      undoCapsBtn.addEventListener('click', undoCapitalizeAcronyms);
+      fontIncrease.addEventListener('click', () => changeFontSize(1));
+      fontDecrease.addEventListener('click', () => changeFontSize(-1));
+      shareBtn.addEventListener('click', shareOnFacebook);
+      archiveBtn.addEventListener('click', openArchiveUrl);
+      sentenceCaseBtn.addEventListener('click', () => changeCase('sentence'));
+      lowerCaseBtn.addEventListener('click', () => changeCase('lower'));
+      upperCaseBtn.addEventListener('click', () => changeCase('upper'));
+      titleCaseBtn.addEventListener('click', () => changeCase('title'));
+      findReplaceBtn.addEventListener('click', openFindReplace);
+      closeFindReplace.addEventListener('click', closeFindReplaceModal);
+      findNextBtn.addEventListener('click', findNext);
+      replaceBtn.addEventListener('click', replaceOne);
+      replaceAllBtn.addEventListener('click', replaceAll);
+      document.addEventListener('paste', handleGlobalUrlPaste);
+
+
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Save: Ctrl+S
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          saveHTML();
+        }
+        // New: Ctrl+N
+        if (e.ctrlKey && e.key === 'n') {
+          e.preventDefault();
+          newDocument();
+        }
+        // Find & Replace: Ctrl+F
+        if (e.ctrlKey && e.key === 'f') {
+          e.preventDefault();
+          openFindReplace();
+        }
+        // Close modal: Escape
+        if (e.key === 'Escape' && findReplaceModal.classList.contains('active')) {
+          closeFindReplaceModal();
+        }
+        // Clean HTML: Ctrl+Shift+C
+        if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+          e.preventDefault();
+          cleanHTML();
+          showNotification('HTML Cleaned');
+        }
+
+        // Wrap Quotes: Ctrl+Shift+Q
+        if (e.ctrlKey && e.shiftKey && (e.key === 'Q' || e.key === 'q')) {
+          e.preventDefault();
+          wrapSelectedTextWithQuotes();
+        }
+      });
+            // Automatically focus the preview pane so the user can start typing/pasting
+
+            previewFrame.contentWindow.focus();
+
+    }
+    
+    // Function to capitalize common acronyms
+    function capitalizeAcronyms() {
+      // Common acronyms to capitalize
+      const acronyms = [
+        'nato', 'nasa', 'fbi', 'cia', 'nsa', 'dod', 'doj', 'epa', 'fda', 'cdc', 
+        'who', 'un', 'eu', 'uk', 'usa', 'ussr', 'unicef', 'unesco', 'opec', 
+        'asean', 'nafta', 'apec', 'osha', 'irs', 'atf', 'dea', 'fema', 'tsa',
+        'cnn', 'bbc', 'npr', 'pbs', 'abc', 'nbc', 'cbs', 'hbo', 'espn',
+        'html', 'css', 'php', 'xml', 'json', 'ajax', 'api', 'sql', 'http', 'https',
+        'ftp', 'smtp', 'url', 'uri', 'cdn', 'dns', 'ip', 'tcp', 'udp', 'ssl', 'tls',
+        'vpn', 'lan', 'wan', 'wifi', 'ids', 'ips', 'dos', 'ddos', 'xss', 'csrf',
+        'ssd', 'hdd', 'ram', 'rom', 'cpu', 'gpu', 'usb', 'hdmi', 'lcd', 'led',
+        'ai', 'ml', 'ar', 'vr', 'iot', 'saas', 'paas', 'iaas', 'devops',
+        'ceo', 'cfo', 'cio', 'cto', 'coo', 'hr', 'pr', 'roi', 'kpi', 'seo',
+        'ppc', 'cpa', 'cpc', 'ctr', 'rpm', 'cpm', 'gdpr', 'hipaa',
+        'lgbtq', 'adhd', 'ptsd', 'aids', 'hiv', 'mrsa', 'msds', 'copd',
+        'evali' // From the example
+      ];
+      
+      // Create a pattern to match whole words that are acronyms
+      // This will match whole words only (with word boundaries)
+      const pattern = new RegExp('\\b(' + acronyms.join('|') + ')\\b', 'gi');
+      
+      // Get content from the source or preview (whichever is active)
+      const isSourceActive = document.activeElement === htmlSource;
+      let content;
+      
+      if (isSourceActive) {
+        content = htmlSource.value;
+      } else {
+        // If preview is active, sync changes to source first
+        syncToSource();
+        content = htmlSource.value;
+      }
+      
+      // Replace lowercase acronyms with uppercase versions
+      const updatedContent = content.replace(pattern, match => match.toUpperCase());
+
+      if (updatedContent === content) {
+        showNotification('No acronyms to capitalize');
+        return;
+      }
+
+      lastCapitalizedContent = content;
+      
+      // Update the editor content
+      htmlSource.value = updatedContent;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+      
+      showNotification('Acronyms capitalized');
+    }
+
+    function undoCapitalizeAcronyms() {
+      if (lastCapitalizedContent === null) {
+        showNotification('No caps changes to undo');
+        return;
+      }
+
+      htmlSource.value = lastCapitalizedContent;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+
+      lastCapitalizedContent = null;
+
+      showNotification('Acronym capitalization undone');
+    }
+    
+    // Function to wrap selected text with special quotation marks
+    function wrapSelectedTextWithQuotes() {
+      const isSourceActive = document.activeElement === htmlSource;
+      
+      // If in preview, sync to source first
+      if (!isSourceActive) {
+        syncToSource();
+      }
+      
+      // Check for selection in source
+      const hasSelection = htmlSource.selectionStart !== htmlSource.selectionEnd;
+      
+      if (hasSelection) {
+        // There is a selection in source
+        const start = htmlSource.selectionStart;
+        const end = htmlSource.selectionEnd;
+        const selectedText = htmlSource.value.substring(start, end);
+        const wrappedText = `❝ ${selectedText} ❞`;
+        
+        htmlSource.value = 
+          htmlSource.value.substring(0, start) + 
+          wrappedText + 
+          htmlSource.value.substring(end);
+        
+        htmlSource.selectionStart = start;
+        htmlSource.selectionEnd = start + wrappedText.length;
+        
+        showNotification('Selection wrapped with quotes');
+      } else {
+        // No selection, find non-empty paragraphs and wrap only those with content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlSource.value;
+        
+        // Find all paragraphs with actual content
+        const contentParagraphs = Array.from(tempDiv.querySelectorAll('p'))
+          .filter(p => p.textContent.trim() !== '');
+        
+        if (contentParagraphs.length > 0) {
+          // Check if content is already wrapped with quotes
+          const firstP = contentParagraphs[0];
+          const lastP = contentParagraphs[contentParagraphs.length - 1];
+          const contentStartsWithQuote = firstP.textContent.trim().startsWith('❝');
+          const contentEndsWithQuote = lastP.textContent.trim().endsWith('❞');
+          
+          if (!contentStartsWithQuote && !contentEndsWithQuote) {
+            // Add opening quote to first non-empty paragraph
+            const trimmedContent = firstP.textContent.trim();
+            firstP.textContent = firstP.textContent.replace(trimmedContent, `❝ ${trimmedContent}`);
+            
+            // Add closing quote to last non-empty paragraph
+            const lastTrimmedContent = lastP.textContent.trim();
+            lastP.textContent = lastP.textContent.replace(lastTrimmedContent, `${lastTrimmedContent} ❞`);
+            
+            // Update source
+            htmlSource.value = tempDiv.innerHTML;
+            showNotification('Content wrapped with quotes');
+          } else {
+            showNotification('Content already has quotes');
+          }
+        } else {
+          // No paragraphs with content, look for any text content
+          const textContent = tempDiv.textContent.trim();
+          
+          if (textContent && !textContent.includes('❝') && !textContent.includes('❞')) {
+            // Wrap entire content if there are no quotes already
+            htmlSource.value = `<p>❝ ${textContent} ❞</p>`;
+            showNotification('Content wrapped with quotes');
+          } else if (!textContent) {
+            showNotification('No content to wrap');
+          } else {
+            showNotification('Content already has quotes');
+          }
+        }
+      }
+      
+      // Update preview
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+    }
+    
+    // Function to copy all text from the preview pane
+    function copyAllText() {
+      try {
+        const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        
+        // Get just the text content from the preview
+        const textContent = previewDocument.body.innerText;
+        
+        // Create a temporary textarea element to copy from
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = textContent;
+        tempTextArea.setAttribute('readonly', '');
+        tempTextArea.style.position = 'absolute';
+        tempTextArea.style.left = '-9999px';
+        document.body.appendChild(tempTextArea);
+        
+        // Select and copy the text
+        tempTextArea.select();
+        document.execCommand('copy');
+        
+        // Remove the temporary element
+        document.body.removeChild(tempTextArea);
+        
+        showNotification('All text copied to clipboard');
+      } catch (e) {
+        console.error('Error copying text:', e);
+        showNotification('Failed to copy text');
+      }
+    }
+    
+    // Format text breaks - convert single line breaks to double line breaks
+    function formatTextBreaks() {
+      // Work with the current content
+      const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+      
+      // Check if there is any content in the editor
+      if (!htmlSource.value.trim()) {
+        showNotification('No content to format');
+        return;
+      }
+      
+      // First get the plain text content to preserve structure
+      const bodyContent = previewDocument.body.innerText;
+      
+      // Process the text breaks - convert single line breaks to double
+      let formattedText = bodyContent;
+      
+      // First normalize line endings
+      formattedText = formattedText.replace(/\r\n/g, '\n');
+      formattedText = formattedText.replace(/\r/g, '\n');
+      
+      // Then add an extra newline between single line breaks
+      formattedText = formattedText.replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
+      
+      // Now convert to paragraphs
+      const paragraphs = formattedText.split(/\n\n+/);
+      const formattedHtml = paragraphs
+        .filter(p => p.trim()) // Remove empty paragraphs
+        .map(p => `<p>${p.trim()}</p>`)
+        .join('\n');
+      
+      // Update the editor
+      htmlSource.value = formattedHtml;
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+      
+      showNotification('Line breaks formatted to paragraphs');
+    }
+    
+    // Update preview
+    function updatePreview() {
+      const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+      
+      // If the iframe's body doesn't exist yet, write the full structure
+      if (!previewDocument.body) {
+        previewDocument.open();
+        previewDocument.write('<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:10px;}</style></head><body></body></html>');
+        previewDocument.close();
+      }
+      
+      // Efficiently update only the body content
+      // This prevents flickering and preserves scroll position
+      if (previewDocument.body.innerHTML !== htmlSource.value) {
+          previewDocument.body.innerHTML = htmlSource.value;
+      }
+
+      // Ensure design mode is on and event listeners are attached
+      if (previewDocument.designMode !== 'on') {
+        previewDocument.designMode = 'on';
+        previewDocument.addEventListener('input', debounce(syncToSource, 300));
+        previewDocument.addEventListener('paste', handlePaste);
+      }
+    }
+
+    function buildLinkHtml(url) {
+      const tempWrapper = document.createElement('div');
+      const paragraph = document.createElement('p');
+      const link = document.createElement('a');
+      link.href = url;
+      link.textContent = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      paragraph.appendChild(link);
+      tempWrapper.appendChild(paragraph);
+      return tempWrapper.innerHTML;
+    }
+
+    function insertLinkFromUrl(url, { useSelection = true, skipSync = false } = {}) {
+      const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+      if (!previewDocument || !previewDocument.body) {
+        return;
+      }
+      
+      const linkHtml = buildLinkHtml(url);
+      try {
+        if (useSelection) {
+          execCommand(previewDocument, 'insertHTML', false, linkHtml);
+        } else {
+          previewDocument.body.insertAdjacentHTML('beforeend', linkHtml);
+        }
+      } catch (err) {
+        console.error('Error inserting link HTML:', err);
+        previewDocument.body.insertAdjacentHTML('beforeend', linkHtml);
+      }
+
+      if (!skipSync) {
+        syncToSource();
+      }
+    }
+    
+    // Handle paste events in the preview
+    function handlePaste(e) {
+      // Prevent the browser's default paste behavior immediately
+      e.preventDefault();
+      
+      try {
+        const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        
+        // Get the pasted content as plain text
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain').trim();
+        
+        // --- SMART PASTE LOGIC ---
+        // If the pasted text is a URL, send it to the share input field and also insert a link
+        if (urlRegex.test(pastedText)) {
+          shareUrl.value = pastedText;
+          showNotification('URL detected and added to share field!');
+          insertLinkFromUrl(pastedText, { useSelection: true, skipSync: true });
+        } else {
+          // If it's not a URL, treat it as normal text and format it into paragraphs
+          const formattedText = pastedText
+            .split(/\r?\n/)
+            .filter(p => p.trim())
+            .map(p => `<p>${p}</p>`)
+            .join('');
+            
+          if (formattedText) {
+            // Insert the clean HTML using our helper command
+            execCommand(previewDocument, 'insertHTML', false, formattedText);
+          }
+        }
+      } catch (err) {
+        console.error('Error handling paste:', err);
+      }
+    }// Helper to safely execute commands in the preview document
+    function execCommand(doc, command, showUI, value) {
+      try {
+        doc.execCommand(command, showUI, value);
+      } catch (e) {
+        console.error(`Error executing "${command}":`, e);
+      }
+    }
+    
+    function handleGlobalUrlPaste(e) {
+      const target = e.target;
+      const tagName = target && target.tagName ? target.tagName.toLowerCase() : '';
+      const isEditableTarget =
+        target === htmlSource ||
+        target === shareUrl ||
+        tagName === 'input' ||
+        tagName === 'textarea' ||
+        (target && target.isContentEditable);
+
+      if (isEditableTarget) {
+        return;
+      }
+
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain').trim();
+      if (!pastedText || !urlRegex.test(pastedText)) {
+        return;
+      }
+
+      e.preventDefault();
+      shareUrl.value = pastedText;
+      showNotification('URL detected and added to share field!');
+      shareUrl.focus();
+      shareUrl.select();
+      insertLinkFromUrl(pastedText, { useSelection: false, skipSync: false });
+    }
+    
+    // Sync changes from preview to source
+   // Start of syncToSource function
+function syncToSource() {
+  // Prevent circular updates
+  if (isUpdatingSource) return;
+  isUpdatingSource = true;
+  
+  try {
+    const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+    
+    // Get only the content between body tags, not the full HTML
+    let bodyContent = previewDocument.body.innerHTML;
+    
+    // Format the content properly - clean up paragraphs
+    bodyContent = formatParagraphs(bodyContent);
+    
+    // Update the source textarea ONLY if the content has changed.
+    // We DO NOT update the preview frame back again, as that is what causes the cursor jump.
+    if (bodyContent !== htmlSource.value) {
+      htmlSource.value = bodyContent;
+      lastCapitalizedContent = null;
+      updateStatusBar();
+      setUnsaved();
+    }
+  } finally {
+    isUpdatingSource = false;
+  }
+}
+// End of syncToSource function
+    
+    // Collapse whitespace between tags while keeping inline spacing intact
+    function collapseWhitespaceBetweenTags(html) {
+      return html.replace(
+        /(<\/?([a-zA-Z0-9:-]+)[^>]*>)(\s+)(<\/?([a-zA-Z0-9:-]+)[^>]*>)/g,
+        (match, leftTag, leftName, whitespace, rightTag, rightName) => {
+          const leftInline = inlineElements.has(leftName.toLowerCase());
+          const rightInline = inlineElements.has(rightName.toLowerCase());
+          
+          if (leftInline || rightInline) {
+            return `${leftTag} ${rightTag}`;
+          }
+          
+          return `${leftTag}\n${rightTag}`;
+        }
+      );
+    }
+
+    // Remove short call-to-action blurbs or divider-only paragraphs
+    function removeNoiseParagraphs(html) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+
+      tempDiv.querySelectorAll('p, li').forEach(node => {
+        const text = node.textContent.trim();
+
+        if (!text) {
+          node.remove();
+          return;
+        }
+
+        if (dividerLinePattern.test(text)) {
+          node.remove();
+          return;
+        }
+
+        const matchesExplicitNoise = noiseLinePatterns.some(pattern => pattern.test(text));
+        const matchesShortCta =
+          text.length <= 120 &&
+          shortCtaLeadPattern.test(text) &&
+          shortCtaContextPattern.test(text);
+
+        if (matchesExplicitNoise || matchesShortCta) {
+          node.remove();
+        }
+      });
+
+      return tempDiv.innerHTML;
+    }
+
+    // Strip Reuters-style ticker codes such as (AAPL.O) from text content
+    function stripReutersTickerCodes(html) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+
+      const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const original = node.nodeValue;
+        const stripped = original.replace(reutersTickerRegex, '');
+
+        if (stripped !== original) {
+          node.nodeValue = stripped.replace(/\s+([,.;:!?])/g, '$1');
+        }
+      }
+
+      return tempDiv.innerHTML;
+    }
+    
+    function isLikelyHtml(content) {
+      return /<\/?[a-z][^>]*>/i.test(content);
+    }
+
+    function convertPlainTextToParagraphs(text) {
+      const blocks = text
+        .split(/\n{2,}/)
+        .map(block => block.replace(/\s*\n+\s*/g, ' ').replace(/\s{2,}/g, ' ').trim())
+        .filter(Boolean);
+
+      if (blocks.length === 0) {
+        return '';
+      }
+
+      return blocks.map(block => `<p>${block}</p>`).join('\n');
+    }
+    
+    // Format paragraphs - remove blank lines and ensure proper structure
+    function formatParagraphs(html) {
+      // First handle direct text formatting
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      try {
+        // Find text nodes directly in the container that aren't just whitespace
+        const directTextNodes = [];
+        for (let i = 0; i < tempDiv.childNodes.length; i++) {
+          const node = tempDiv.childNodes[i];
+          if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '') {
+            directTextNodes.push(node);
+          }
+        }
+        
+        // Wrap direct text nodes in paragraph tags
+        for (const node of directTextNodes) {
+          const p = document.createElement('p');
+          p.textContent = node.textContent;
+          tempDiv.replaceChild(p, node);
+        }
+        
+        // Remove any empty paragraph tags
+        Array.from(tempDiv.querySelectorAll('p'))
+          .filter(p => p.textContent.trim() === '')
+          .forEach(p => {
+            // Only remove if it doesn't have meaningful children (like images)
+            if (p.children.length === 0) {
+              p.remove();
+            }
+          });
+
+        // Unwrap span elements so their content remains but the tag is removed
+        Array.from(tempDiv.querySelectorAll('span')).forEach(span => {
+          const parent = span.parentNode;
+          if (!parent) return;
+          while (span.firstChild) {
+            parent.insertBefore(span.firstChild, span);
+          }
+          span.remove();
+        });
+        
+        // Get the HTML with wrapped paragraphs
+        html = tempDiv.innerHTML;
+      } catch (e) {
+        console.error('Error formatting paragraphs:', e);
+      }
+      
+      // Now apply consistent formatting with newlines between paragraphs
+      return normalizeHtml(html);
+    }
+    
+    // Normalize HTML formatting for better readability
+    function normalizeHtml(html) {
+      let normalized = html;
+      
+      // Normalize whitespace between elements without dropping inline spacing
+      normalized = collapseWhitespaceBetweenTags(normalized);
+      
+      // Add newlines between specific elements for readability
+      normalized = normalized.replace(/<\/p>\s*<p>/g, '</p>\n<p>');
+      normalized = normalized.replace(/<\/div>\s*<div/g, '</div>\n<div');
+      normalized = normalized.replace(/<\/h([1-6])>\s*<h([1-6])/g, '</h$1>\n<h$2');
+      normalized = normalized.replace(/<\/li>\s*<li/g, '</li>\n<li');
+      normalized = normalized.replace(/<\/ul>\s*<ul/g, '</ul>\n<ul');
+      normalized = normalized.replace(/<\/ol>\s*<ol/g, '</ol>\n<ol');
+      normalized = normalized.replace(/<\/table>\s*<table/g, '</table>\n<table');
+      normalized = normalized.replace(/<\/tr>\s*<tr/g, '</tr>\n<tr');
+      
+      return normalized;
+    }
+    
+    // Format HTML with proper newlines but without other cleaning
+    function formatHTML() {
+      let formatted = htmlSource.value;
+      formatted = normalizeHtml(formatted);
+      htmlSource.value = formatted;
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+      showNotification('HTML formatting applied');
+    }
+    
+    // Determine if two HTML strings are substantially different (not just whitespace/formatting)
+    function isSubstantiallyDifferent(html1, html2) {
+      // Create temporary elements to normalize the HTML
+      const temp1 = document.createElement('div');
+      const temp2 = document.createElement('div');
+      
+      temp1.innerHTML = html1;
+      temp2.innerHTML = html2;
+      
+      // Compare text content (ignores whitespace differences)
+      return temp1.textContent.trim() !== temp2.textContent.trim() || 
+             Math.abs(countElements(temp1) - countElements(temp2)) > 0;
+    }
+    
+    // Count elements in a container
+    function countElements(element) {
+      return element.querySelectorAll('*').length;
+    }
+
+    // Compute word count from the current HTML, ignoring tags
+    function getWordCount(html) {
+      const text = html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ');
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      return words.length;
+    }
+    
+    // Update status bar
+    function updateStatusBar() {
+      charCount.textContent = `Characters: ${htmlSource.value.length}`;
+      wordCount.textContent = `Words: ${getWordCount(htmlSource.value)}`;
+      lineCount.textContent = `Lines: ${htmlSource.value.split('\n').length}`;
+    }
+    
+    // Toggle preview pane
+    function togglePreview() {
+      showPreview = !showPreview;
+      
+      if (showPreview) {
+        previewContainer.style.width = '50%';
+        sourceContainer.style.width = '50%';
+        previewContainer.classList.remove('hidden');
+        togglePreviewBtn.textContent = 'Hide Preview';
+        updatePreview();
+      } else {
+        previewContainer.style.width = '0';
+        sourceContainer.style.width = '100%';
+        previewContainer.classList.add('hidden');
+        togglePreviewBtn.textContent = 'Show Preview';
+      }
+    }
+    
+    // Create new document
+    function newDocument() {
+      if (!isSaved) {
+        if (!confirm('You have unsaved changes. Create new document anyway?')) {
+          return;
+        }
+      }
+      
+      htmlSource.value = '';
+      lastCapitalizedContent = null;
+      currentFileName = 'untitled.html';
+      fileName.textContent = currentFileName;
+      updatePreview();
+      updateStatusBar();
+      setSaved();
+    }
+    
+    // Load HTML from file
+    function loadHTML(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let content = e.target.result;
+        
+        // Try to extract only the body content if it's a full HTML document
+        if (content.includes('<body') && content.includes('</body>')) {
+          const bodyMatch = content.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+          if (bodyMatch && bodyMatch[1]) {
+            content = bodyMatch[1].trim();
+          }
+        }
+        
+        htmlSource.value = content;
+        lastCapitalizedContent = null;
+        currentFileName = file.name;
+        fileName.textContent = currentFileName;
+        updatePreview();
+        updateStatusBar();
+        setSaved();
+      };
+      reader.readAsText(file);
+      
+      // Reset file input to allow opening the same file again
+      openFile.value = '';
+    }
+    
+    // Save HTML to file
+    function saveHTML() {
+      const blob = new Blob([htmlSource.value], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = currentFileName;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      setSaved();
+      URL.revokeObjectURL(url);
+    }
+    
+    // Clean HTML
+    function cleanHTML() {
+      // Normalize line endings first
+      let cleaned = htmlSource.value
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n');
+
+      // Remove Reuters-style "opens in new tab" helpers, handling awkward commas and conjunctions
+      cleaned = cleaned
+        .replace(/,\s*opens?\s+(?:in\s+)?new\s+tab\s+(and|or)\b/gi, ' $1')
+        .replace(/\)\s*opens?\s+(?:in\s+)?new\s+tab\s+(and|or)\b/gi, ') $1')
+        .replace(/,\s*opens?\s+(?:in\s+)?new\s+tab(,\s*)?/gi, (match, trailingComma) => trailingComma ? trailingComma : '')
+        .replace(/\(\s*opens?\s+(?:in\s+)?new\s+tab\s*\)/gi, '')
+        .replace(/\s*opens?\s+(?:in\s+)?new\s+tab\b/gi, '');
+
+      cleaned = stripReutersTickerCodes(cleaned);
+      
+      // Tidy spacing between tags before further processing
+      cleaned = collapseWhitespaceBetweenTags(cleaned);
+      
+      // Handle &nbsp; entities early
+      cleaned = cleaned.replace(/&nbsp;/gi, ' ');
+
+      // Decode remaining HTML entities
+      const tempDiv = document.createElement('textarea');
+      tempDiv.innerHTML = cleaned;
+      cleaned = tempDiv.value;
+
+      // Strip stray external-link icon glyphs
+      cleaned = cleaned.replace(externalLinkIconsRegex, '');
+
+      // Normalize stray spacing/blank lines in plain text segments
+      cleaned = cleaned.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      const hasHtmlTags = isLikelyHtml(cleaned);
+      
+      if (!hasHtmlTags) {
+        cleaned = convertPlainTextToParagraphs(cleaned);
+      }
+      
+      // Additional formatting for paragraphs and removal of short CTA junk
+      cleaned = formatParagraphs(cleaned);
+      cleaned = removeNoiseParagraphs(cleaned);
+      
+      // Apply normalized formatting after noise removal
+      cleaned = normalizeHtml(cleaned);
+      
+      htmlSource.value = cleaned;
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+      
+      showNotification('HTML cleaned and entities converted');
+    }
+    
+    // Convert HTML entities to characters
+    function convertEntities() {
+      // Create a temporary element to decode entities
+      const temp = document.createElement('textarea');
+      temp.innerHTML = htmlSource.value;
+      
+      // Get the decoded text and update the editor
+      htmlSource.value = temp.value;
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+      
+      // Show conversion notification
+      showNotification('HTML entities converted to characters');
+    }
+    
+    // Change font size
+    function changeFontSize(delta) {
+      fontSize = Math.max(10, Math.min(24, fontSize + delta));
+      htmlSource.style.fontSize = `${fontSize}px`;
+    }
+    
+    // Save current selection/cursor position
+    function saveSelection(doc) {
+      if (doc.getSelection) {
+        const sel = doc.getSelection();
+        if (sel.rangeCount > 0) {
+          return sel.getRangeAt(0);
+        }
+      }
+      return null;
+    }
+    
+    // Restore selection/cursor position
+    function restoreSelection(doc, range) {
+      if (doc.getSelection && range) {
+        const sel = doc.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+    
+    // Set document as saved
+    function setSaved() {
+      isSaved = true;
+      saveStatus.classList.add('hidden');
+    }
+    
+    // Set document as unsaved
+    function setUnsaved() {
+      isSaved = false;
+      saveStatus.classList.remove('hidden');
+    }
+    
+    // Show temporary notification
+    function showNotification(message) {
+      // Create notification element if it doesn't exist
+      let notification = document.getElementById('notification');
+      if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.right = '20px';
+        notification.style.padding = '10px 15px';
+        notification.style.backgroundColor = '#3b82f6';
+        notification.style.color = 'white';
+        notification.style.borderRadius = '4px';
+        notification.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+        notification.style.transition = 'opacity 0.3s';
+        notification.style.zIndex = '1000';
+        document.body.appendChild(notification);
+      }
+      
+      // Show the notification with the message
+      notification.textContent = message;
+      notification.style.opacity = '1';
+      
+      // Hide after 3 seconds
+      setTimeout(() => {
+        notification.style.opacity = '0';
+      }, 3000);
+    }
+    
+    // Debounce helper function to limit rapid function calls
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+    // Function to share a URL on Facebook
+function shareOnFacebook() {
+  const urlToShare = shareUrl.value.trim();
+
+  // 1. Validate that the URL is not empty
+  if (!urlToShare) {
+    showNotification('Please paste a URL first.');
+    return;
+  }
+
+  // 2. Properly encode the URL to be used as a query parameter
+  // This is crucial to ensure special characters in the URL don't break the link.
+  const encodedUrl = encodeURIComponent(urlToShare);
+
+  // 3. Construct the final Facebook sharer URL
+  const facebookShareUrl = `https://www.facebook.com/sharer/?u=${encodedUrl}`;
+
+  // 4. Open the link in a new tab
+    window.open(facebookShareUrl, '_blank');
+}
+
+    function openSummary() {
+      window.open('https://claude.ai/project/6462d4da-e7d4-4fc4-8ee0-cc7473052fcb', '_blank', 'noopener');
+    }
+    
+// Function to open a clean archive.ph URL
+function openArchiveUrl() {
+  const urlToArchive = shareUrl.value.trim();
+
+  // 1. Validate that the URL is not empty
+  if (!urlToArchive) {
+    showNotification('Please paste a URL first.');
+    return;
+  }
+
+  try {
+    // 2. Parse the URL to clean it
+    let url = new URL(urlToArchive);
+
+    // Remove query parameters and hash fragments
+    url.search = '';
+    url.hash = '';
+
+    const cleanedUrl = url.toString();
+
+    // 3. Construct the archive.ph URL
+    const archiveLink = `https://archive.ph/${cleanedUrl}`;
+
+    // 4. Open the link in a new tab
+    window.open(archiveLink, '_blank');
+
+  } catch (error) {
+    // Use the existing notification system for errors
+    showNotification("Invalid URL. Please check it and try again.");
+    console.error('URL parsing error:', error);
+  }
+}
+// Function to change the case of selected text in the preview pane
+function changeCase(caseType) {
+  const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
+  const selection = previewDocument.getSelection();
+
+  // 1. Check if any text is actually selected
+  if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
+    showNotification('Please select some text to change its case.');
+    return;
+  }
+
+  const selectedText = selection.toString();
+  let transformedText = '';
+
+  // 2. Apply the correct transformation based on the button clicked
+  switch (caseType) {
+    case 'sentence':
+      transformedText = selectedText.toLowerCase().replace(/(^\w{1})|([.?!]\s*\w{1})/g, char => char.toUpperCase());
+      break;
+    case 'lower':
+      transformedText = selectedText.toLowerCase();
+      break;
+    case 'upper':
+      transformedText = selectedText.toUpperCase();
+      break;
+    case 'title':
+      transformedText = selectedText.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+      break;
+  }
+
+  // 3. Replace the selected text with the transformed version
+  // This command is designed for rich text editors and preserves surrounding HTML
+  if (transformedText) {
+    previewDocument.execCommand('insertText', false, transformedText);
+    showNotification(`Text converted to ${caseType} case.`);
+    // Ensure the source view is updated
+    syncToSource();
+  }
+}
+
+    // Find and Replace Functions
+    function openFindReplace() {
+      findReplaceModal.classList.add('active');
+      findInput.focus();
+      replaceStats.textContent = '';
+    }
+
+    function closeFindReplaceModal() {
+      findReplaceModal.classList.remove('active');
+      currentSearchIndex = -1;
+      searchMatches = [];
+      replaceStats.textContent = '';
+      // Clear any highlighting in source
+      htmlSource.focus();
+    }
+
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function findNext() {
+      const searchText = findInput.value;
+
+      if (!searchText) {
+        showNotification('Please enter text to find');
+        return;
+      }
+
+      const content = htmlSource.value;
+      const isCaseSensitive = caseSensitive.checked;
+      const isRegex = useRegex.checked;
+
+      try {
+        let pattern;
+        if (isRegex) {
+          pattern = new RegExp(searchText, isCaseSensitive ? 'g' : 'gi');
+        } else {
+          pattern = new RegExp(escapeRegex(searchText), isCaseSensitive ? 'g' : 'gi');
+        }
+
+        // Find all matches
+        searchMatches = [];
+        let match;
+        while ((match = pattern.exec(content)) !== null) {
+          searchMatches.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            text: match[0]
+          });
+        }
+
+        if (searchMatches.length === 0) {
+          showNotification('No matches found');
+          replaceStats.textContent = 'No matches found';
+          return;
+        }
+
+        // Move to next match
+        currentSearchIndex = (currentSearchIndex + 1) % searchMatches.length;
+        const currentMatch = searchMatches[currentSearchIndex];
+
+        // Select the match in textarea
+        htmlSource.focus();
+        htmlSource.setSelectionRange(currentMatch.start, currentMatch.end);
+        htmlSource.scrollTop = htmlSource.scrollHeight * (currentMatch.start / content.length);
+
+        replaceStats.textContent = `Match ${currentSearchIndex + 1} of ${searchMatches.length}`;
+      } catch (error) {
+        showNotification('Invalid regular expression');
+        replaceStats.textContent = 'Error: Invalid pattern';
+      }
+    }
+
+    function replaceOne() {
+      const searchText = findInput.value;
+      const replaceText = replaceInput.value;
+
+      if (!searchText) {
+        showNotification('Please enter text to find');
+        return;
+      }
+
+      if (searchMatches.length === 0 || currentSearchIndex === -1) {
+        findNext();
+        if (searchMatches.length === 0) return;
+      }
+
+      const currentMatch = searchMatches[currentSearchIndex];
+      const content = htmlSource.value;
+
+      // Replace the current match
+      htmlSource.value =
+        content.substring(0, currentMatch.start) +
+        replaceText +
+        content.substring(currentMatch.end);
+
+      lastCapitalizedContent = null;
+      updatePreview();
+      updateStatusBar();
+      setUnsaved();
+
+      showNotification('Replaced 1 occurrence');
+
+      // Reset search to find next
+      currentSearchIndex = -1;
+      searchMatches = [];
+      findNext();
+    }
+
+    function replaceAll() {
+      const searchText = findInput.value;
+      const replaceText = replaceInput.value;
+
+      if (!searchText) {
+        showNotification('Please enter text to find');
+        return;
+      }
+
+      const content = htmlSource.value;
+      const isCaseSensitive = caseSensitive.checked;
+      const isRegex = useRegex.checked;
+
+      try {
+        let pattern;
+        if (isRegex) {
+          pattern = new RegExp(searchText, isCaseSensitive ? 'g' : 'gi');
+        } else {
+          pattern = new RegExp(escapeRegex(searchText), isCaseSensitive ? 'g' : 'gi');
+        }
+
+        let count = 0;
+        const newContent = content.replace(pattern, (match) => {
+          count++;
+          return replaceText;
+        });
+
+        if (count === 0) {
+          showNotification('No matches found');
+          replaceStats.textContent = 'No matches found';
+          return;
+        }
+
+        htmlSource.value = newContent;
+        lastCapitalizedContent = null;
+        updatePreview();
+        updateStatusBar();
+        setUnsaved();
+
+        currentSearchIndex = -1;
+        searchMatches = [];
+
+        showNotification(`Replaced ${count} occurrence${count !== 1 ? 's' : ''}`);
+        replaceStats.textContent = `Replaced ${count} occurrence${count !== 1 ? 's' : ''}`;
+      } catch (error) {
+        showNotification('Invalid regular expression');
+        replaceStats.textContent = 'Error: Invalid pattern';
+      }
+    }
+
+// Initialize editor when page loads
+window.addEventListener('DOMContentLoaded', initEditor);
+  </script>
+</body>
+</html>

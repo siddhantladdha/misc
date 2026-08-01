@@ -1,0 +1,61 @@
+name: Fish script runner.
+
+env:
+    PKG_VERSION: "4.7.1"
+    PKG_SHA256: "345388add316b94a847b08cef01f1b46e85b98215328271ee22a21555a3204df"
+    GH_TOKEN: ${{ github.token }}
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      script_name:
+        description: "Name of script"
+        required: false
+        default: "hello.fish"
+        type: string
+      scripts_dir:
+        description: "Absolute path of script parent dir"
+        required: false
+        default: ".github/workflows/scripts"
+        type: string
+
+# Sets permissions of the GITHUB_TOKEN
+permissions:
+  contents: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "fish-runner"
+  cancel-in-progress: false
+
+# Default to bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Download and Run job
+  dl_and_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Fish
+        run: |
+          # fail on error and print commands
+          set -ex
+          cd /usr/local/bin\
+          && gh release download --repo fish-shell/fish-shell ${{ env.PKG_VERSION }} --pattern "*x86_64*" --output fish.tar.xz\
+          && echo ${{ env.PKG_SHA256 }} fish.tar.xz | sha256sum --check\
+          && tar --extract --xz --verbose --file=fish.tar.xz\
+          && chmod u+x fish
+  
+      - name: Checkout scripts only
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            ${{ inputs.scripts_dir }}
+          sparse-checkout-cone-mode: false
+
+      - name: Run Scripts
+        run: |
+          fish ${{ inputs.scripts_dir }}/${{ inputs.script_name }}

@@ -1,0 +1,29 @@
+#!/usr/bin/env fish
+
+function download_gh --description 'Download github releases.'
+    # gh release download [<tag>] [flags]
+    gh release download python3.14 \
+        --repo niess/python-appimage \
+        --clobber --pattern "*cp314-manylinux2014_x86_64.AppImage" \
+        --output python
+    # not pinning the exact version of the above release, to be made aware of any newer release.
+    gh release download continuous \
+        --repo AppImage/appimagetool \
+        --clobber --pattern "*x86_64.AppImage" \
+        --output appimagetool
+end
+
+function verify_sha256 --description 'Verify sha256 checksums of downloaded files.'
+    if sha256sum --check --warn --status checksums.sha256sum
+        echo 'Checksums match.'
+        chmod u+x appimagetool python
+        mkdir build
+        mv --target-directory=build appimagetool python
+    else
+        echo 'Checksums do not match. Exiting.'
+        exit 1
+    end
+end
+
+download_gh
+verify_sha256

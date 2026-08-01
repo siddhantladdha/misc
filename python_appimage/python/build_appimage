@@ -1,0 +1,23 @@
+#!/usr/bin/env fish
+## Runs inside the container $HOME
+echo 'Extracting appimages.'
+./python --appimage-extract && mv squashfs-root python.AppDir && rm --recursive --force python
+
+./appimagetool --appimage-extract && mv squashfs-root appimagetool.AppDir && rm --recursive --force appimagetool
+
+cp requirements.txt python.AppDir/
+begin
+    cd python.AppDir
+    echo 'Starting pip install from requirements.txt'
+    ./usr/bin/pip install \
+        --verbose --progress-bar on \
+        --no-cache-dir --disable-pip-version-check \
+        --requirement ./requirements.txt
+    echo 'pip install finished'
+    cd ..
+end
+
+set --export ARCH x86_64
+set --export APPIMAGETOOL_APP_NAME python
+# appstream metadata checking disabled due to some issue.
+./appimagetool.AppDir/AppRun --no-appstream ./python.AppDir python

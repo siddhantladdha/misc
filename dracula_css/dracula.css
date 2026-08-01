@@ -1,0 +1,63 @@
+:root {
+  /* HEX */
+  --background: #282a36;
+  --current-line: #6272a4;
+  --selection: #44475a;
+  --foreground: #f8f8f2;
+  --comment: #6272a4;
+  --red: #ff5555;
+  --orange: #ffb86c;
+  --yellow: #f1fa8c;
+  --green: #50fa7b;
+  --cyan: #8be9fd;
+  --purple: #bd93f9;
+  --pink: #ff79c6;
+  --ui-floating-interactive: #343946;
+  --ui-bg-lighter: #434551;
+  --ui-bg-light: #343946;
+  --ui-bg-dark: #21222c;
+  --ui-bg-darker: #181920;
+  --func-red: #dd5836;
+  --func-orange: #a39514;
+  --func-green: #089108;
+  --func-cyan: #0081d6;
+  --func-purple: #805bd7;
+  /* HSL */
+  --background: hsl(231, 15%, 18%);
+  --current-line: hsl(225, 27%, 51%);
+  --selection: hsl(232, 14%, 31%);
+  --foreground: hsl(60, 30%, 96%);
+  --comment: hsl(225, 27%, 51%);
+  --red: hsl(0, 100%, 67%);
+  --orange: hsl(31, 100%, 71%);
+  --yellow: hsl(65, 92%, 76%);
+  --green: hsl(135, 94%, 65%);
+  --cyan: hsl(191, 97%, 77%);
+  --purple: hsl(265, 89%, 78%);
+  --pink: hsl(326, 100%, 74%);
+  /* UI Colors */
+  --ui-floating-interactive: hsl(225, 15%, 24%);
+  --ui-bg-lighter: hsl(231, 10%, 29%);
+  --ui-bg-light: hsl(225, 15%, 24%);
+  --ui-bg-dark: hsl(235, 14%, 15%);
+  --ui-bg-darker: hsl(232, 14%, 11%);
+  /* Functional Colors */
+  --func-red: hsl(12, 71%, 54%);
+  --func-orange: hsl(54, 78%, 36%);
+  --func-green: hsl(120, 90%, 30%);
+  --func-cyan: hsl(204, 100%, 42%);
+  --func-purple: hsl(258, 61%, 60%);
+  /* RGB */
+  --background: rgb(40, 42, 54);
+  --current-line: rgb(98, 114, 164);
+  --selection: rgb(68, 71, 90);
+  --foreground: rgb(248, 248, 242);
+  --comment: rgb(98, 114, 164);
+  --red: rgb(255, 85, 85);
+  --orange: rgb(255, 184, 108);
+  --yellow: rgb(241, 250, 140);
+  --green: rgb(80, 250, 123);
+  --cyan: rgb(139, 233, 253);
+  --purple: rgb(189, 147, 249);
+  --pink: rgb(255, 121, 198);
+}

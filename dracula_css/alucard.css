@@ -1,0 +1,47 @@
+:root {
+    /* HEX */
+    --background: #FFFBEB;
+    --current-line: #6C664B;
+    --selection: #CFCFDE;
+    --foreground: #1F1F1F;
+    --comment: #6C664B;
+    --red: #CB3A2A;
+    --orange: #A34D14;
+    --yellow: #846E15;
+    --green: #14710A;
+    --cyan: #036A96;
+    --purple: #644AC9;
+    --pink: #A3144D;
+    /* HSL */
+    --background: hsl(48, 100%, 96%);
+    --current-line: hsl(49, 18%, 36%);
+    --selection: hsl(240, 18%, 84%);
+    --foreground: hsl(0, 0%, 12%);
+    --comment: hsl(49, 18%, 36%);
+    --red: hsl(6, 66%, 48%);
+    --orange: hsl(24, 78%, 36%);
+    --yellow: hsl(48, 73%, 30%);
+    --green: hsl(114, 84%, 24%);
+    --cyan: hsl(198, 96%, 30%);
+    --purple: hsl(252, 54%, 54%);
+    --pink: hsl(336, 78%, 36%);
+    /* RGB */
+    --background: rgb(255, 251, 235);
+    --current-line: rgb(108, 102, 75);
+    --selection: rgb(207, 207, 222);
+    --foreground: rgb(31, 31, 31);
+    --comment: rgb(108, 102, 75);
+    --red: rgb(203, 58, 42);
+    --orange: rgb(163, 77, 20);
+    --yellow: rgb(132, 110, 21);
+    --green: rgb(20, 113, 10);
+    --cyan: rgb(3, 106, 150);
+    --purple: rgb(100, 74, 201);
+    --pink: rgb(163, 20, 77);
+    /* UI Colors */
+    --ui-floating-interactive: hsl(54, 37%, 90%);
+    --ui-bg-lighter: hsl(46, 25%, 90%);
+    --ui-bg-light: hsl(52, 19%, 84%);
+    --ui-bg-dark: hsl(51, 13%, 78%);
+    --ui-bg-darker: hsl(47, 6%, 72%);
+}

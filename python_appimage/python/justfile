@@ -1,0 +1,63 @@
+set shell := ["fish", "-c"]
+default:
+  just --choose
+
+build_appimage:
+  # Build the appimage non-interactively.
+  # run the appimage build
+  uv export --format requirements.txt > requirements.txt
+  # Download github assets save them to build/
+  ./gh_rel_dl
+  # copy other things to build/
+  cp requirements.txt build/
+  cp build_appimage build/
+  echo "Entering the docker container to build the appimage."
+  docker run --rm \
+  --mount type=bind,source=$(pwd)/build,target=/home/neo \
+  --workdir /home/neo \
+  almalinux8p10_build ./build_appimage
+  cp --force build/python python.AppImage
+  rm --recursive --force build
+
+build_appimage_interactive:
+  # Build the appimage interactively in case of issues.
+  # run the appimage build
+  uv export --format requirements.txt > requirements.txt
+  # Download github assets save them to build/
+  ./gh_rel_dl
+  # copy other things to build/
+  cp requirements.txt build/
+  cp build_appimage build/
+  echo "After entering the docker container, run './build_appimage' to build the appimage."
+  docker run --interactive --tty --rm \
+  --mount type=bind,source=$(pwd)/build,target=/home/neo \
+  almalinux8p10_build
+  cp --force build/python python.AppImage
+  rm --recursive --force build
+
+test_appimage:
+  #!/usr/bin/env fish
+  ./python.AppImage -m pytest simple_test.py -v && echo "AppImage test passed." && sha256sum python.AppImage > python.AppImage.sha256 && echo "SHA256 checksum saved to python.AppImage.sha256" || echo "AppImage test failed."
+
+test_appdir:
+  #!/usr/bin/env fish
+  # Extract appimage and test it in ~/.local/bin/python
+  rm --recursive --force $HOME/.local/bin/.python-appdir
+  mv --force $HOME/.local/bin/python.AppImage $HOME/.local/bin/python_old.AppImage
+  cp ./python.AppImage $HOME/.local/bin/
+  cd $HOME/.local/bin
+  $HOME/.local/bin/python.AppImage --appimage-extract
+  mv $HOME/.local/bin/squashfs-root $HOME/.local/bin/.python-appdir
+  # $HOME/.local/bin/python -m pytest simple_test.py -v
+
+default_benchmark:
+  hyperfine --min-runs 3 --max-runs 10 --warmup 2 \
+  --conclude "rm -rf __pycache__ .pytest_cache" \
+  "./python.AppImage -m pytest simple_test.py -v"
+
+extracted_benchmark:
+  hyperfine --min-runs 3 --max-runs 10 --warmup 2 \
+  --conclude "rm -rf __pycache__ .pytest_cache" \
+  --setup "./python.AppImage --appimage-extract" \
+  --cleanup "rm -rf squashfs-root" \
+  "./squashfs-root/AppRun -m pytest simple_test.py -v"

@@ -1,0 +1,1 @@
+https://github.com/pyscript/pyscript/releases/download/2026.3.1/offline_2026.3.1.zip

@@ -1,0 +1,171 @@
+[project]
+name = "pi"
+version = "1.0.2"
+description = "A maximalist (and bloated) batteries included python 3.14 appimage for Electrical engineering workflows. WASM friendly!"
+readme = "README.md"
+requires-python = "==3.14.6"
+license = "CC0-1.0"
+authors = [
+  { name = "Siddhant Laddha", email = "25705822+siddhantladdha@users.noreply.github.com" }
+]
+maintainers = [
+  { name = "Siddhant Laddha", email = "25705822+siddhantladdha@users.noreply.github.com" }
+]
+classifiers = [
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Private :: Do Not Upload",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  # Use the following for any utility functions and data structures
+  # instead of writing your own.
+  "boltons>=25.0.0",
+  # for any cli applications/interfaces.
+  "cyclopts>=4.11.0; sys_platform != 'emscripten'",
+  # Generate code from schemas for better interoperability between tools.
+  "datamodel-code-generator",
+  # Tabular data exports
+  "great-tables>=0.22.0",
+  "hy",  # evaluating versus sexpdata for lisp interface.
+  # use the following for testing and test coverage.
+  "hypothesis>=6.152.3",
+  # marimo goodies.
+  "marimo[lsp]",
+  "marimo[mcp]",
+  "marimo[recommended]",
+  # Only use this if polars and xarray cannot do a task.
+  "numpy>=2.4.4",
+  "pandas>=3.0.2",
+  # Use the following for parsing in case user explicitly asks.
+  "parsimonious>=0.11.0",  # maybe pyparsing is more ergonomic. evaluate.
+  # use plotly instead of matplotlib.
+  "plotly>=6.7.0",
+  # Use this if you really need to use multiple subprocess/shell functions.
+  "plumbum>=1.10.0; sys_platform == 'linux'",
+  # use polars instead of pandas.
+  "polars>=1.40.1",
+  "polars-mcp",
+  # in rare cases where you need to actually read psf data.
+  "psf_utils>=1.10",
+  # for interactive use by user.
+  "ptpython>=3.0.32; sys_platform != 'emscripten'",
+  # Use pydantic for data validation.
+  "pydantic>=2.13.3",
+  # Use the following for parsing by default.
+  "pyparsing>=3.3.2",
+  # use the following for testing.
+  "pytest>=9.0.3",
+  # If you don't use units and SI prefixes, fuck you.
+  "quantiphy>=2.21",
+  # use this for logging, pretty printing and traceback.
+  "rich>=15.0.0",
+  # formatter and linter for python code.
+  "ruff",
+  # engineering specific libraries.
+  "scipy>=1.17.1",
+  # in rare cases where you need to interact with SKILL/SKILL++/Scheme.
+  "sexpdata",
+  # symbolic math is love!
+  "sympy>=1.14.0",
+  # for functional programming.
+  "toolz>=1.1.0",
+  # type checker.
+  "ty",
+  "wigglystuff",  # trying this marimo widget out for fun.
+  # use xarray instead of numpy.
+  "xarray>=2026.4.0",
+  ## Archives/TBD
+  # "polarise>=1.1.0",
+  # "flowview",
+]
+
+[project.urls]
+Homepage = "https://sid555.com/pwa/marimo/pi/"
+Repository = "https://github.com/siddhantladdha/misc/tree/main/shit-container/almalinux_8p10/python"
+
+[tool.ruff]
+# TODO: needed? Docs say
+# The directory containing the nearest pyproject.toml, ruff.toml, or .ruff.toml file (the "project root").
+src = ["."]
+extend-exclude = ["archives", "drafts"]
+
+[tool.ruff.lint]
+ignore = [
+  # F401: module imported but unused
+  "F401"
+]
+extend-select = [
+  "NPY",  # numpy
+  "N",  # pep8-naming
+  "PTH",  # flake8-use-pathlib
+  "SIM",  # flake8-simplify
+  "EXE",  # flake8-executable
+  "FURB110",
+  "FURB116",
+  "FURB167",
+  "FURB177",
+  "B903",
+  "TRY300",
+  "LOG004",
+  "LOG007",
+  "UP042",
+  "PERF403",
+  "PERF401",
+  #############
+  # Preview rules
+  "FURB113",
+  "FURB152",
+  "FURB156",
+  #############
+  #############
+  # Enable the following when working on spaghetti and old code.
+  # "FURB",
+  # "UP",
+  #############
+]
+# There are certain `preview`/beta rules that I am selectively enabling.
+preview = true
+explicit-preview-rules = true
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ty.analysis]
+respect-type-ignore-comments = true
+
+[tool.ty.src]
+exclude = ["archives", "drafts"]
+# exclude-scripts = true  # pass scripts to command line explicitly.
+
+[tool.ty.environment]
+# The following is needed for ty to resolve the first/third party packages correctly
+# when using the appimage python. Otherwise, venv needs to be created at every place.
+# the relative path seems to work.
+python-platform = "linux"
+extra-paths = [
+  "~/.local/bin/.python-appdir/opt/python3.14/lib/python3.14/site-packages/"
+]
+# The following might not be needed.
+# python = "~/.local/bin/python"
+# python = "~/.local/bin/.python-appdir/opt/python3.14/bin/python3.14"
+# python-version = "3.14"
+# /home/<user_name>/.local/bin/.python-appdir/opt/python3.14/bin/python3.14
+
+##### verification pending BEGIN #####
+# Created by: Claude.
+# verification: Done.
+# FIXME: Remove this notice after understanding the changes.
+# Kept in sync with the pi appimage build manifest as a record of what the
+# scripts here may assume is available. The appimage already bundles all of
+# these and exposes them through the venv via system site-packages, so do NOT
+# `uv sync` casually -- it would re-download everything from PyPI into .venv.
+# Use `uv run --no-sync` (or UV_NO_SYNC=1) to run without triggering that.
+[tool.uv]
+# This is added to coerce the use of system python which here refers to the appimage python.
+python-preference = "only-system"
+python-downloads = "never"
+package = false
+offline = true
+upgrade = false
+##### verification pending END #####
