@@ -1,6 +1,6 @@
 [project]
 name = "pi"
-version = "1.0.2"
+version = "1.1.0"
 description = "A maximalist (and bloated) batteries included python 3.14 appimage for Electrical engineering workflows. WASM friendly!"
 readme = "README.md"
 requires-python = "==3.14.6"
@@ -82,7 +82,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://sid555.com/pwa/marimo/pi/"
-Repository = "https://github.com/siddhantladdha/misc/tree/main/shit-container/almalinux_8p10/python"
+Repository = "https://github.com/siddhantladdha/misc/tree/main/python_appimage/"
 
 [tool.ruff]
 # TODO: needed? Docs say
