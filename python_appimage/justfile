@@ -1,12 +1,60 @@
+set shell := ["fish", "-c"]
+
 default:
-  just --choose
+    just --choose
+
+_cleanup:
+    rm --recursive --force requirements.txt uv.lock build
+    rm --recursive --force __pycache__ .pytest_cache
+    # rm --recursive --force python.AppImage python.AppImage.sha256
+
+build_appimage:
+    # Builds the appimage non-interactively.
+    source builder_script && host_prepare
+    echo "Entering the docker container to build the appimage."
+    docker run --rm \
+    --mount type=bind,source=$(pwd)/build,target=/home/neo \
+    --workdir /home/neo \
+    almalinux8p10_build "/usr/bin/env fish -c source ./builder_script && docker_appimage_build"
+    cp --force build/python python.AppImage
+
+build_appimage_interactive:
+    # Build the appimage interactively in case of issues.
+    source builder_script && host_prepare
+    echo "After entering the docker container, run the following"
+    echo '/usr/bin/env fish -c source ./builder_script && docker_appimage_build'
+    docker run --interactive --tty --rm \
+    --mount type=bind,source=$(pwd)/build,target=/home/neo \
+    almalinux8p10_build
+    cp --force build/python python.AppImage
+
+test_appimage:
+    #!/usr/bin/env fish
+    ./python.AppImage -m pytest simple_test.py -v && echo "AppImage test passed." && sha256sum python.AppImage > python.AppImage.sha256 && echo "SHA256 checksum saved to python.AppImage.sha256" || echo "AppImage test failed."
+
+test_appdir:
+    # This writes external to CWD, use with caution.
+    source builder_script && appdir_to_bin
+    ~/.local/bin/python -m pytest simple_test.py -v
+
+default_benchmark:
+    hyperfine --min-runs 3 --max-runs 10 --warmup 2 \
+    --conclude "just _cleanup" \
+    "./python.AppImage -m pytest simple_test.py -v"
+
+extracted_benchmark:
+    hyperfine --min-runs 3 --max-runs 10 --warmup 2 \
+    --conclude "just _cleanup" \
+    --setup "./python.AppImage --appimage-extract" \
+    --cleanup "rm -rf squashfs-root" \
+    "./squashfs-root/AppRun -m pytest simple_test.py -v"
 
 build_container:
-  # Build the container.
-  docker build --tag almalinux8p10_build .
+    # Build the docker container.
+    docker build --tag almalinux8p10_build .
 
 enter_interactive:
-  # Enter the docker container in interactive mode.
-  docker run --interactive --tty --rm \
-  --mount type=bind,source=$(pwd),target=/home/neo \
-  almalinux8p10_build
+    # Enter the docker container in interactive mode for debugging/testing.
+    docker run --interactive --tty --rm \
+    --mount type=bind,source=$(pwd),target=/home/neo \
+    almalinux8p10_build

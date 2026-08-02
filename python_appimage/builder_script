@@ -1,0 +1,90 @@
+#!/usr/bin/env fish
+
+function _download_gh --description 'Download github releases.'
+    # gh release download [<tag>] [flags]
+    gh release download python3.14 \
+        --repo niess/python-appimage \
+        --clobber --pattern "*cp314-manylinux2014_x86_64.AppImage" \
+        --output python
+    # not pinning the exact version of the above release, to be made aware of any newer release.
+    gh release download continuous \
+        --repo AppImage/appimagetool \
+        --clobber --pattern "*x86_64.AppImage" \
+        --output appimagetool
+end
+
+function _verify_sha256 --description 'Verify sha256 checksums of downloaded files.'
+    if sha256sum --check --warn --status checksums.sha256sum
+        echo 'Checksums match.'
+        chmod u+x appimagetool python
+    else
+        echo 'Checksums do not match. Exiting.'
+        exit 1
+    end
+end
+
+function appimage_extract --description 'Extracts the appimage files.'
+    argparse 'appimage=' 'appdir=' 'target_dir=' -- $argv
+    if test -f $appimage; and test -x $appimage
+        echo "Extracting $appimage"
+        $appimage --appimage-extract
+    else
+        echo "$appimage is not a valid appimage file."
+        exit 1
+    end
+    if test -d {$appdir,$target_dir}
+        echo "Extraction of $appimage -> $appdir is successful. Moving it to $target_dir/.$appimage-AppDir"
+        rm --recursive --force "$target_dir/.$appimage-AppDir"
+        mv "$appdir" "$target_dir/.$appimage-AppDir"
+        echo "Removing the original appimage file $appimage"
+        rm --force "$appimage"
+    else
+        echo "Extraction of $appimage failed."
+        exit 1
+    end
+end
+
+function host_prepare --description "Prepare the host environment for building the appimage."
+    # Check if required executables exists
+    if not type -q {gh, sha256sum, uv}
+        echo "gh/sha256sum/uv is not installed. Please install it and try again."
+        exit 1
+    end
+    # prepare stuff on the host.
+    uv export --format requirements.txt >requirements.txt
+    # Download github assets
+    _download_gh && _verify_sha256 && mkdir build \
+        && mv --target-directory=build appimagetool python requirements.txt \
+        && cp builder_script build/
+end
+
+function docker_appimage_build --description "Builds the appimage inside the docker container."
+    appimage_extract --appimage=python --appdir=squashfs-root --target_dir=.
+    appimage_extract --appimage=appimagetool --appdir=squashfs-root --target_dir=.
+
+    cp requirements.txt .python-AppDir/
+    begin
+        cd .python-AppDir
+        echo 'Starting pip install from requirements.txt'
+        ./usr/bin/pip install \
+            --verbose --progress-bar on \
+            --no-cache-dir --disable-pip-version-check \
+            --requirement ./requirements.txt
+        echo 'pip install finished'
+        cd ..
+    end
+
+    set --export ARCH x86_64
+    set --export APPIMAGETOOL_APP_NAME python
+    # appstream metadata checking disabled due to some issue.
+    ./appimagetool.AppDir/AppRun --no-appstream ./python.AppDir python
+end
+
+function appdir_to_bin --description "Deploys an appimage to a path as an appdir"
+    # TODO: generalize it.
+    mv python.AppImage python
+    appimage_extract --appimage=python --appdir=squashfs-root --target_dir=$HOME/.local/bin
+    set app_name "$HOME/.local/bin/python$(date +"%m%d").AppImage" # backup.
+    cp ./python $app_name
+    ln --symbolic --force $app_name $HOME/.local/bin/python
+end
