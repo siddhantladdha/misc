@@ -15,7 +15,7 @@ build_appimage:
     docker run --rm \
     --mount type=bind,source=$(pwd)/build,target=/home/neo \
     --workdir /home/neo \
-    almalinux8p10_build "/usr/bin/env fish -c source ./builder_script && docker_appimage_build"
+    almalinux8p10_build /usr/bin/env fish -c 'source ./builder_script && docker_appimage_build'
     cp --force build/python python.AppImage
 
 build_appimage_interactive:
