@@ -94,9 +94,9 @@ end
 
 function appdir_to_bin --description "Deploys an appimage to a path as an appdir"
     # TODO: generalize it.
-    mv python.AppImage python
-    appimage_extract --appimage=python --appdir=squashfs-root --target_dir=$HOME/.local/bin
+    cp python.AppImage python
     set app_name "$HOME/.local/bin/python$(date +"%m%d").AppImage" # backup.
     cp ./python $app_name
-    ln --symbolic --force $app_name $HOME/.local/bin/python
+    appimage_extract --appimage=python --appdir=squashfs-root --target_dir=$HOME/.local/bin
+    ln --symbolic --force "$HOME/.local/bin/.python-AppDir/AppRun" $HOME/.local/bin/python
 end
