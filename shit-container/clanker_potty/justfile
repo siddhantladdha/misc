@@ -1,0 +1,18 @@
+set shell := ["fish", "-c"]
+
+default:
+    just --choose
+
+build_container:
+    # Build the container.
+    podman build --tag almalinux8p10_clanker .
+
+enter_interactive:
+    # Enter the container in interactive mode for usage.
+    # userns allows the host to copy/paste files into the container without permission issues.
+    # open port 2718 for marimo server, so that the host can connect to it.
+    podman run --interactive --tty --rm \
+    --userns=keep-id \
+    --publish 2718:2718 \
+    --mount type=bind,source=./container_home/,target=/home/clanker,relabel=shared \
+    almalinux8p10_clanker
