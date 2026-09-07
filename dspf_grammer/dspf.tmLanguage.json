@@ -1,0 +1,229 @@
+{
+  "scopeName": "source.dspf",
+  "name": "DSPF",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#annotations"
+    },
+    {
+      "include": "#statements"
+    },
+    {
+      "include": "#tokens"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "comment": "Non-standard C-style block comment. Not part of DSPF proper (which uses '*'/'**'), retained as an editor convenience for hand-annotated files.",
+          "name": "comment.block.dspf",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "comment": "Non-standard C++-style line comment. Not part of DSPF proper, retained as an editor convenience for hand-annotated files.",
+          "name": "comment.line.double-slash.dspf",
+          "match": "//.*$"
+        },
+        {
+          "comment": "Double-asterisk line comment, the DSPF-preferred convention per the SPF spec.",
+          "name": "comment.line.double-asterisk.dspf",
+          "match": "^\\s*\\*\\*.*$"
+        },
+        {
+          "comment": "Bare SPICE comment: a leading '*' followed by whitespace or end-of-line. The lookahead excludes '*|' annotations and header keywords such as *DSPF, which have no space after the asterisk.",
+          "name": "comment.line.asterisk.dspf",
+          "match": "^\\*(?![|A-Za-z])([ \\t].*)?$"
+        }
+      ]
+    },
+    "annotations": {
+      "patterns": [
+        {
+          "comment": "Ground net declaration; group 2 colors the rail name. The pipe is optional because vendors emit both *|GROUND_NET and *GROUND_NET.",
+          "match": "(^\\*\\|?GROUND_NET)\\s+(\\S+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.dspf.groundnet"
+            },
+            "2": {
+              "name": "entity.name.dspf.rail"
+            }
+          }
+        },
+        {
+          "comment": "Header keywords. BUS_DELIMITER precedes DELIMITER so the trailing \\b never truncates it. The optional pipe covers both *|DESIGN and *DESIGN vendor spellings.",
+          "name": "keyword.control.dspf.heading",
+          "match": "^\\*\\|?(DSPF|DESIGN|DATE|VENDOR|PROGRAM|VERSION|DIVIDER|BUS_DELIMITER|DELIMITER|BUSBIT|UNITS)\\b"
+        },
+        {
+          "comment": "Net section header; group 2 colors the net name and the trailing capacitance is left to the numeric rule. Covers *|NET and bare *NET.",
+          "match": "(^\\*\\|?NET)\\s+(\\S+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.dspf.net"
+            },
+            "2": {
+              "name": "entity.name.dspf.net"
+            }
+          }
+        },
+        {
+          "comment": "Net connectivity labels: *|I instance pin, *|P port/pin, *|S subnode. The \\b keeps single letters from bleeding into following identifiers.",
+          "name": "keyword.other.dspf.connection",
+          "match": "^\\*\\|?[IPS]\\b"
+        },
+        {
+          "comment": "Fallback for any other *| vendor annotation not modelled above.",
+          "name": "keyword.other.dspf.annotation",
+          "match": "^\\*\\|\\w+"
+        }
+      ]
+    },
+    "statements": {
+      "patterns": [
+        {
+          "comment": "Subcircuit definition. Group 1 is the .SUBCKT keyword and group 2 the subckt/module name; each remaining whitespace-delimited token on the line is a top-level port. Ports reappear as *|P declarations in the net sections.",
+          "begin": "(?i)^(\\.SUBCKT)\\s+(\\S+)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.dspf.subckt"
+            },
+            "2": {
+              "name": "entity.name.type.dspf.subckt"
+            }
+          },
+          "end": "$",
+          "patterns": [
+            {
+              "name": "variable.parameter.dspf.port",
+              "match": "\\S+"
+            }
+          ]
+        },
+        {
+          "comment": "Subcircuit terminators, case-insensitive. ENDS precedes END so it is not truncated.",
+          "name": "keyword.control.dspf.subckt",
+          "match": "(?i)^\\.(ENDS|END)\\b"
+        },
+        {
+          "comment": "Parasitic element instance name: R resistor, C capacitor, L inductor. The whole identifier (e.g. C_OUT_1, R25) is one token, matching SPICE naming where the leading letter is only a type hint, not a separable field.",
+          "name": "entity.name.dspf.element",
+          "match": "^[RrCcLl]\\w*"
+        },
+        {
+          "comment": "Instance-section subcircuit call (e.g. X1 X1:A X1:Y VDD VSS INVX1): the instance name comes first, then instance-pin/node terminals in instance:pin form, then the subcircuit master/cell name as the final field. The master rule anchors on end-of-line so only the last token is scoped as the cell.",
+          "begin": "(?i)^(X\\w*)",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.dspf.instance"
+            }
+          },
+          "end": "$",
+          "patterns": [
+            {
+              "comment": "Subcircuit master/cell name: the final field on the line.",
+              "name": "entity.name.type.dspf.cell",
+              "match": "\\S+(?=\\s*$)"
+            },
+            {
+              "include": "#tokens"
+            }
+          ]
+        },
+        {
+          "comment": "Device instance line (MOSFET M, and other single-letter SPICE devices). Light-touch: color the instance name only; terminals, model and parameters fall through to the generic token rules rather than a full SPICE device grammar.",
+          "name": "entity.name.function.dspf.instance",
+          "match": "^[Mm]\\w*"
+        }
+      ]
+    },
+    "tokens": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.dspf",
+          "match": "\"[^\"]*\""
+        },
+        {
+          "comment": "Layout parameters emitted by extraction tools, e.g. $w=, $l=, $layer=, $X=.",
+          "match": "(\\$[\\w.]+)(=)?",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.dspf"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.dspf"
+            }
+          }
+        },
+        {
+          "comment": "Delimited name: the part after the DELIMITER ':' is the pin (in instance:pin) or the sub-node index (in net:sub). It is scoped as an identifier, never a pin-type keyword. The instance/net part before the colon is left to the catch-all so the whole reads as one name:name unit.",
+          "match": "(:)(\\w+)",
+          "captures": {
+            "1": {
+              "name": "punctuation.separator.delimiter.dspf"
+            },
+            "2": {
+              "name": "variable.other.dspf.pin"
+            }
+          }
+        },
+        {
+          "comment": "Standalone DELIMITER colon (e.g. the value of *|DELIMITER, or a trailing colon) not followed by a name.",
+          "name": "punctuation.separator.delimiter.dspf",
+          "match": ":"
+        },
+        {
+          "comment": "Numeric bus bit/range, e.g. [1], <0:7>, (3).",
+          "match": "(<|\\[|\\()([\\d:]+)(\\]|\\)|>)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.bracket.dspf"
+            },
+            "2": {
+              "name": "constant.numeric.dspf.bus"
+            },
+            "3": {
+              "name": "punctuation.definition.bracket.dspf"
+            }
+          }
+        },
+        {
+          "comment": "Remaining brackets, including the parentheses wrapping *|P/*|I/*|S argument lists.",
+          "name": "punctuation.definition.bracket.dspf",
+          "match": "[<\\[\\(\\]\\)>]"
+        },
+        {
+          "comment": "Numbers including decimals and scientific notation, e.g. 0.148478e-12 or 1.70333E00. No trailing word boundary so an attached unit suffix (see below) can be scoped separately.",
+          "name": "constant.numeric.dspf",
+          "match": "\\b\\d+(\\.\\d+)?([eE][-+]?\\d+)?"
+        },
+        {
+          "comment": "Engineering/unit suffix attached to a value, e.g. 0.148478PF, 1.0u, 44.7OHM. Case-insensitive per SPICE; multi-character units are listed before single-character scale factors.",
+          "name": "keyword.other.dspf.unit",
+          "match": "(?i)(?<=[0-9.])(meg|kohm|mohm|gohm|ohm|pf|nf|uf|ff|mf|ph|nh|uh|mh|fs|ps|ns|us|ms|[fpnumkgt]|h)\\b"
+        },
+        {
+          "comment": "Pin direction/type flags used in *|P and *|I lists: I input, O output, B bidirectional, X unspecified, S supply, J jumper. The lookbehind excludes the letter of a *|I / *|P / *|S label.",
+          "name": "keyword.other.dspf.pintype",
+          "match": "(?<![|*])\\b[IOBXSJ]\\b"
+        },
+        {
+          "comment": "Hierarchy divider ('/' or '.') embedded between name segments, e.g. X1.In, or a standalone DIVIDER value.",
+          "name": "punctuation.separator.divider.dspf",
+          "match": "(?<=\\w)[./](?=\\w)|(?<=\\s)/(?=\\s|$)"
+        },
+        {
+          "comment": "Catch-all for net, node and instance names. MUST remain the last pattern, or any rule after it becomes unreachable.",
+          "name": "variable.other.dspf",
+          "match": "\\w+"
+        }
+      ]
+    }
+  },
+  "fileTypes": ["dspf"]
+}
