@@ -1,5 +1,5 @@
 # AlmaLinux 8.10 dev environment for a clanker sandbox.
-# It is not a good sanbox, just slightly better than running an agent
+# It is not a good sandbox, just slightly better than running an agent
 # on my host, since the stupid thing does too much.
 FROM almalinux:8.10
 LABEL description="AlmaLinux 8.10 clanker sandbox"

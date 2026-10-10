@@ -1,7 +1,7 @@
 set shell := ["fish", "-c"]
 
 default:
-    just --choose
+    just enter_interactive
 
 build_container:
     # Build the container.
