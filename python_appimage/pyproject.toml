@@ -30,6 +30,7 @@ dependencies = [
   "hy",  # evaluating versus sexpdata for lisp interface.
   # use the following for testing and test coverage.
   "hypothesis>=6.152.3",
+  "lark",
   # marimo goodies.
   "marimo[lsp]",
   "marimo[mcp]",
